@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="airsales-travel-package-generator-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="airsales-travel-package-generator-config" api="resource::c2544490-da77-4a06-97c2-bf91358dd414:airsales-travel-package-generator:1.0.0:raml:zip:airsales-travel-package-generator.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="airsales-travel-package-generator-main">
+        <http:listener config-ref="airsales-travel-package-generator-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="airsales-travel-package-generator-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="airsales-travel-package-generator-console">
+        <http:listener config-ref="airsales-travel-package-generator-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="airsales-travel-package-generator-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\generate-package:application\json:airsales-travel-package-generator-config">
+        <!-- Step 1: Save the original request -->
+        <set-variable variableName="originalRequest" value="#[payload]" doc:name="Save Original Request"/>
+        <logger level="INFO" message="#[output application/json --- payload]" doc:name="Log Payload"/>
+
+        <!-- Step 2: Call Weather API (OpenWeatherMap) -->
+        <http:request method="GET" url="https://api.openweathermap.org/data/2.5/weather" doc:name="Weather API">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+    q : vars.originalRequest."destination-" default "Mauritius",
+    appid : "f95987b5c0ca9fb00a536f8dd030e667",
+    units : "metric"
+}]]]></http:query-params>
+        </http:request>
+        <set-variable variableName="weatherData" value="#[payload]" doc:name="Save Weather Data"/>
+
+        <!-- Step 3: Call Currency Exchange API -->
+        <http:request method="GET" url='#["https://api.exchangerate-api.com/v4/latest/" ++ (vars.originalRequest."currency-" default "USD")]' doc:name="Currency API"/>
+        <set-variable variableName="currencyData" value="#[payload]" doc:name="Save Currency Data"/>
+
+        <!-- Step 4: Call AirLabs Flight Routes API -->
+        <http:request method="GET" url="https://airlabs.co/api/v9/routes" doc:name="AirLabs Flight Routes">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+    api_key : "a48e7433-87bd-4644-ac74-3e474fb42d31",
+    arr_iata : vars.originalRequest."destination_airport-" default "MRU"
+}]]]></http:query-params>
+        </http:request>
+        <set-variable variableName="flightRoutes" value="#[payload]" doc:name="Save Flight Routes"/>
+
+        <!-- Step 5: Call AirLabs Airport Schedules API -->
+        <http:request method="GET" url="https://airlabs.co/api/v9/schedules" doc:name="AirLabs Flight Schedules">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+    api_key : "a48e7433-87bd-4644-ac74-3e474fb42d31",
+    arr_iata : vars.originalRequest."destination_airport-" default "MRU"
+}]]]></http:query-params>
+        </http:request>
+        <set-variable variableName="flightSchedules" value="#[payload]" doc:name="Save Flight Schedules"/>
+
+        <!-- Step 6: Call Booking.com Hotel Search API via RapidAPI -->
+        <http:request method="GET" url="https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination" doc:name="Hotel Search API">
+            <http:headers><![CDATA[#[output application/java
+---
+{
+    "x-rapidapi-key" : "80e3f9f9a5mshfc9705e25cde338p12661cjsn592a81682f38",
+    "x-rapidapi-host" : "booking-com15.p.rapidapi.com"
+}]]]></http:headers>
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+    query : vars.originalRequest."destination-" default "Mauritius"
+}]]]></http:query-params>
+        </http:request>
+        <set-variable variableName="hotelData" value="#[payload]" doc:name="Save Hotel Data"/>
+
+        <!-- Step 7: Combine ALL data into complete travel package -->
+        <ee:transform doc:name="Build Complete Travel Package">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    package_name: (vars.originalRequest."destination-" default "Unknown") ++ " Travel Package",
+    destination: vars.originalRequest."destination-",
+    destination_airport: vars.originalRequest."destination_airport-" default "MRU",
+    travel_type: vars.originalRequest."travel_type-" default "vacation",
+    duration: vars.originalRequest."duration-" default 7,
+    num_people: vars.originalRequest."num_people-" default 2,
+    budget: vars.originalRequest."budget-" default 0,
+    departure_date: vars.originalRequest."departure_date-",
+
+    weather: {
+        temperature: vars.weatherData.main.temp,
+        feels_like: vars.weatherData.main.feels_like,
+        condition: vars.weatherData.weather[0].main,
+        description: vars.weatherData.weather[0].description,
+        humidity: vars.weatherData.main.humidity,
+        wind_speed: vars.weatherData.wind.speed
+    },
+
+    currency_rates: {
+        base: vars.currencyData.base default "USD",
+        EUR: vars.currencyData.rates.EUR,
+        GBP: vars.currencyData.rates.GBP,
+        MUR: vars.currencyData.rates.MUR,
+        AED: vars.currencyData.rates.AED,
+        INR: vars.currencyData.rates.INR
+    },
+
+    flight_routes: (vars.flightRoutes.response default [])[0 to 9] map {
+        airline_iata: $.airline_iata,
+        departure_airport: $.dep_iata,
+        arrival_airport: $.arr_iata
+    },
+
+    flight_schedules: (vars.flightSchedules.response default [])[0 to 9] map {
+        flight_number: $.flight_iata,
+        airline: $.airline_iata,
+        departure_airport: $.dep_iata,
+        arrival_airport: $.arr_iata,
+        departure_time: $.dep_time,
+        arrival_time: $.arr_time,
+        status: $.status
+    },
+
+    hotels: vars.hotelData.data default [],
+
+    recommendation: "Based on current weather (" ++ (vars.weatherData.main.temp as String default "N/A") ++ "C, " ++ (vars.weatherData.weather[0].main default "N/A") ++ ") and " ++ (sizeOf(vars.flightRoutes.response default []) as String) ++ " available flight routes, this is a great time to visit " ++ (vars.originalRequest."destination-" default "your destination"),
+    generated_at: now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
