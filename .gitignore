@@ -50,3 +50,6 @@ velocity.log
 # ACB defaults #
 # ------------------------------------------------------------------------------ #
 .tooling-project
+
+# API keys - never commit this file
+src/main/resources/config.yaml

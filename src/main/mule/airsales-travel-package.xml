@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <configuration-properties file="config.yaml" />
     <http:listener-config name="airsales-travel-package-generator-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
@@ -134,7 +135,7 @@ output application/json
 ---
 {
     q : vars.originalRequest."destination-" default "Mauritius",
-    appid : "f95987b5c0ca9fb00a536f8dd030e667",
+    appid : "${openweather.api-key}",
     units : "metric"
 }]]]></http:query-params>
         </http:request>
@@ -149,7 +150,7 @@ output application/json
             <http:query-params><![CDATA[#[output application/java
 ---
 {
-    api_key : "a48e7433-87bd-4644-ac74-3e474fb42d31",
+    api_key : "${airlabs.api-key}",
     arr_iata : vars.originalRequest."destination_airport-" default "MRU"
 }]]]></http:query-params>
         </http:request>
@@ -160,7 +161,7 @@ output application/json
             <http:query-params><![CDATA[#[output application/java
 ---
 {
-    api_key : "a48e7433-87bd-4644-ac74-3e474fb42d31",
+    api_key : "${airlabs.api-key}",
     arr_iata : vars.originalRequest."destination_airport-" default "MRU"
 }]]]></http:query-params>
         </http:request>
@@ -171,8 +172,8 @@ output application/json
             <http:headers><![CDATA[#[output application/java
 ---
 {
-    "x-rapidapi-key" : "80e3f9f9a5mshfc9705e25cde338p12661cjsn592a81682f38",
-    "x-rapidapi-host" : "booking-com15.p.rapidapi.com"
+    "x-rapidapi-key" : "${rapidapi.key}",
+    "x-rapidapi-host" : "${rapidapi.host}"
 }]]]></http:headers>
             <http:query-params><![CDATA[#[output application/java
 ---
